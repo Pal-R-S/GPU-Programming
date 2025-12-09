@@ -6,4 +6,5 @@ DEaling with Concurrencies, harnessing Parallelism and a lot more.
 Join me on this thrilling journey,
 
 Here is a guide on navigating through this repo:
+The Root contains main.cu and other dependancy files. Other directories contain codes you can copy to main.cu and run simply by executing the mainfile
 
