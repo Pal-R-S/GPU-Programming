@@ -2,9 +2,28 @@
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include "help.cu"
+//The Aim behind this file is to understand blocks, threaads, warps and the way they execute
+//we design several kernels and execute them to see how they behave 
+//the conclusions from the observed behaviour will be documented in the report file
+
+// __global__ void kernel_1(unsigned int n){
+//     gettid_1D();
+//     if (tid < n) {
+//         printf("Hello from thread %d\n", tid);
+//     }
+    
+// }
+
+    
+// int main(){
+//     make_kernel_call(kernel_1, 1024);
+    
+    
+//     return 0;
+// }
 
 __global__ void kernel_matrix_mult(unsigned int n, unsigned int n1,unsigned int n2,unsigned int n3, int *data_a, int *data_b, int*data_mult){
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    gettid_1D();
     if (    tid < n) {
         int ind_matr1=tid/n3;
         int row_1=ind_matr1/(n2);
@@ -61,7 +80,7 @@ int main(){
     H2D(matrx_a, N1*N2, int);
     H2D(matrx_b, N3*N2, int);
     
-    time_kernel_call(kernel_matrix_mult,N1*N2*N3, N1,N2,N3, d_matrx_a, d_matrx_b, d_mult_matrx);
+    time_kernel_call(kernel_matrix_mult,N1*N2*N3, 256, N1,N2,N3, d_matrx_a, d_matrx_b, d_mult_matrx);
     // Copy data back to host
     D2H(mult_matrx, N1*N3, int);
     for (unsigned int i = 0; i < 10 && i < N1*N3; i++) {
@@ -69,12 +88,9 @@ int main(){
     }
     printf("\n");
     
-    free(matrx_a);
-    free(matrx_b);
-    free(mult_matrx);
-    cudaFree(d_matrx_a);
-    cudaFree(d_matrx_b);
-    cudaFree(d_mult_matrx);
+    free_dual(matrx_a);
+    free_dual(matrx_b);
+    free_dual(mult_matrx);
     
     return 0;
 }
