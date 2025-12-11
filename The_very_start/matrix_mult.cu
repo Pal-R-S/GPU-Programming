@@ -4,7 +4,7 @@
 #include "help.cu"
 
 __global__ void kernel_matrix_mult(unsigned int n, unsigned int n1,unsigned int n2,unsigned int n3, int *data_a, int *data_b, int*data_mult){
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid =gettid_1D();
     if (    tid < n) {
         int ind_matr1=tid/n3;
         int row_1=ind_matr1/(n2);

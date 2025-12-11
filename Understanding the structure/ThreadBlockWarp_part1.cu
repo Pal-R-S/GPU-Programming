@@ -57,16 +57,16 @@ __global__ void kernel_4(unsigned int n){
 }
     
 int main(){
-    // make_kernel_call(kernel_1, 120,40); //120 threads , 40 threads per block
+    make_kernel_call(kernel_1, 120,40); //120 threads , 40 threads per block
 
     // Observe that thread idx goes from 0 uptil 39. There are 40 threads per block. The first 32 of them grp together in execution. 
     //such a execution unit is called a warp=>(max) 32 threads within the same block that execute together
 
-    // make_kernel_call(kernel_1, 100, 50); //100 threads , 50 threads per block
+    make_kernel_call(kernel_1, 100, 50); //100 threads , 50 threads per block
 
     //Observe the same behaviour here. First 32 threads grp together, then the next 18 threads grp together. Thread id of a block goes from 0 to 49
     
-    // make_kernel_call(kernel_2, 120,32);
+    make_kernel_call(kernel_2, 120,32);
     
     //Upuntil the first printf statements, the behaviour is ame as before.
     // Observe how all the odd threads send thier out put first and then all the even threads. 
@@ -74,19 +74,19 @@ int main(){
     //this raises the question does the scheduling happen for each statement of the kernel separately?
     //we can device a simple test for this (NOTE: we are yet to check how warps within a block behave in this regard)
 
-    // make_kernel_call(kernel_3, 96,32);
+    make_kernel_call(kernel_3, 96,32);
 
     //This much simpler kernel with no coonditional statements shows that the scheduling between happens at the level of individual print statements.
     //All the blocks execute statement 1 then all execute statement 2 and then all execute statement 3.
     //Lets now try to explore what happens if we have multiple warps within a block.
     //We continue to keep away the complication that comes with conditional statements for now.
 
-    // make_kernel_call(kernel_3, 42,42); //2 warps within 1 block
-    // make_kernel_call(kernel_3, 80,80); //3 warps within 1 block
+    make_kernel_call(kernel_3, 42,42); //2 warps within 1 block
+    make_kernel_call(kernel_3, 80,80); //3 warps within 1 block
 
     //Here we observe that there is line wise execution of the print statements but the order of execution of the warps at each statement is different
 
-    //make_kernel_call(kernel_3, 100,40); //2 warps in a block and there are 2 blocks 
+    make_kernel_call(kernel_3, 100,40); //2 warps in a block and there are 2 blocks 
 
     //We observe that the different blocks may interleave thier execution in units of warps. 
     //Simply put, the sheduling seems to happen at the warp unit level and not the block unit level.
@@ -94,8 +94,8 @@ int main(){
     //We now try to analyse the behaviour of execution when threads diverge.
     //We design kernel 4 that depicts divergence of threads in a warp
 
-    // make_kernel_call(kernel_4, 32  ,32); //1 block , 1 warp per block
-    // make_kernel_call(kernel_4, 128  ,32); //4 blocks , 1 warp per block
+    make_kernel_call(kernel_4, 32  ,32); //1 block , 1 warp per block
+    make_kernel_call(kernel_4, 128  ,32); //4 blocks , 1 warp per block
 
     //We observe that the warps of each block execute the first print statement together, then the second print statement together and then the third print statement together.
     //threads from differnt warps dont interleave in the execution of a single statement.
