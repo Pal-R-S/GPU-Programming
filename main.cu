@@ -6,106 +6,186 @@
 // we design several kernels and execute them to see how they behave 
 // the conclusions from the observed behaviour will be documented in the report file
 
-__global__ void kernel_1(unsigned int n){
+__global__ void kernel_diverge_problem1(unsigned int n, int* data){
     gettid_1D();
     if (tid < n) {
-        printf("Hello from threadID  %d\n and of block %d\n", threadIdx.x, blockIdx.x);
-    }
-    
-}
-__global__ void kernel_2(unsigned int n){
-    gettid_1D();
-    if (tid < n) {
-        printf("tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
-        if (tid % 2 == 0) {
-            printf("EVEN %d %d\n", threadIdx.x, blockIdx.x);
-        } else {
-            printf("ODD %d %d\n", threadIdx.x, blockIdx.x);
+        if (tid % 2 == 0){
+            data[tid] = (data[tid] / 2 + 2) * 4;
+        }
+        else{
+            data[tid] = (data[tid] * 2 + 2) * 3;
         }
     }
     
 }
-__global__ void kernel_3(unsigned int n){
+__global__ void kernel_no_diverge_problem1(unsigned int n, int* data){
+    gettid_1D();
+    unsigned int tid_base = tid / 64;
+    if (tid % 64 > 31){
+        unsigned int tid_p = tid_base * 64 + 2 * (tid % 32) + 1;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] * 2 + 2) * 3;
+        }
+    }
+    else { unsigned int tid_p = tid_base * 64 + 2 * (tid % 32);
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] / 2 + 2) * 4;
+        }
+    }
+    
+    
+}
+__global__ void kernel_diverge_problem2(unsigned int n, int* data){
     gettid_1D();
     if (tid < n) {
-        printf(" 1111.   tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
-        printf(" 2222.   tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
-        printf(" 3333.   tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
+        if (tid % 4 == 0){
+            data[tid] = (data[tid] / 2 + 2) * 4;
+        }
+        else if (tid % 4 == 1){
+            data[tid] = (data[tid] * 2 + 2) * 3;
+        }
+        else if (tid % 4 == 2){
+            data[tid] = (data[tid] + 5) * 5;
+        }
+        else {
+            data[tid] = (data[tid] - 3) * 6;
+        }
+    }
+}
+__global__ void kernel_less_diverge_problem2(unsigned int n, int* data){
+    gettid_1D();
+    unsigned int tid_base = tid / 64;
+    if (tid>=n){
+        return;
+    }
+    if (tid % 64 > 47){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 1;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] - 3) * 6;
+        }
+    }
+    else if (tid % 64 > 31){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 2;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] + 5) * 5;
+        }
+    }
+    else if (tid % 64 > 15){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16);
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] * 2 + 2) * 3;
+        }
+    }
+    else {
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 3;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] / 2 + 2) * 4;
+        }
+    }
+}
+__global__ void kernel_no_diverge_problem2(unsigned int n, int* data){
+    gettid_1D();
+    unsigned int tid_base = tid / 128;
+    if (tid % 128 > 95){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 1;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] - 3) * 6;
+        }
+    }
+    else if (tid % 128 > 63){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 2;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] + 5) * 5;
+        }
+    }
+    else if (tid % 128 > 31){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16);
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] * 2 + 2) * 3;
+        }
+    }
+    else {
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 3;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] / 2 + 2) * 4;
+        }
+    }
+}
 
-        
-    }
-    
-}
-__global__ void kernel_4(unsigned int n){
-    gettid_1D();
-    if (tid < n) {
-        unsigned int mod_val = threadIdx.x % 3;
-        if (mod_val == 0) {
-            // First warp
-            printf("mod=0 warp - tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
-        } else if (mod_val == 1) {
-            // Second warp
-            printf("mod=1 warp - tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
-        } else if (mod_val == 2) {
-            // Third warp
-            printf("mod=2 warp - tid: %d threadidx: %d  block %d\n ", tid, threadIdx.x, blockIdx.x);
-        } else {
-            //do nothing 
-            }
-    }
-    
-}
+
     
 int main(){
-    // make_kernel_call(kernel_1, 120,40); //120 threads , 40 threads per block
+    //We are going to explore the observe the ill effects of Warp Divergence and how much it can affect performance
 
-    // Observe that thread idx goes from 0 uptil 39. There are 40 threads per block. The first 32 of them grp together in execution. 
-    //such a execution unit is called a warp=>(max) 32 threads within the same block that execute together
+    //problem1 
+    //if a number is odd multiply it by 2 add 2 then multiply by 3 else if its even divide by 2 add 2 then multiply by 4.
+    int* a;
+    unsigned int N= 1<<20;
+    a = (int*)malloc(N * sizeof(int));
+    init_int_seq(N, a);
+    int* d_a;
+    cudaMalloc((void**)&d_a, N * sizeof(int));
+    H2D(a, N, int);
+    time_kernel_call(kernel_diverge_problem1, N, 1024, d_a);
+    init_int_seq(N, a);
+    H2D(a, N,int);
+    time_kernel_call(kernel_no_diverge_problem1, N, 1024, d_a);
+    D2H(a, N, int);
+    free_dual(a);
 
-    // make_kernel_call(kernel_1, 100, 50); //100 threads , 50 threads per block
+    /*We observe time for execution 
+    Kernel execution time: ~0.250368 ms -- for warp divergence
+    Kernel execution time: ~0.069408 ms -- for no warp Divergence
+    Note that we have taken care to reduce anylatency caused by memory acceses by a warp of threads*/
 
-    //Observe the same behaviour here. First 32 threads grp together, then the next 18 threads grp together. Thread id of a block goes from 0 to 49
-    
-    // make_kernel_call(kernel_2, 120,32);
-    
-    //Upuntil the first printf statements, the behaviour is ame as before.
-    // Observe how all the odd threads send thier out put first and then all the even threads. 
-    //Also note the scheduling order for the blocks is different for the three print statements. 
-    //this raises the question does the scheduling happen for each statement of the kernel separately?
-    //we can device a simple test for this (NOTE: we are yet to check how warps within a block behave in this regard)
+    /*Since the results from one probelem cannot be considered convincing enough, 
+    Problem two is designed such that there is even more divergence in a warp, vs no divergence in a warp.*/
 
-    // make_kernel_call(kernel_3, 96,32);
+    //Problem 2:
+    //We design the extreme case where every thread enters a different branch. We totally avoid share memory problems here
+    unsigned int N2=1<<10;
+    int* a2 = (int*)malloc(N2 * sizeof(int));
+    init_eq(N2, 5, a2);
+    int* d_a2;
+    cudaMalloc((void**)&d_a2, N2 * sizeof(int));
+    H2D(a2, N2, int);
+   
+    time_kernel_call(kernel_diverge_problem2, N2, 1024, d_a2);
+    D2H(a2, N2, int);
+    //Print first 10 elements
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", a2[i]);
+    }
+    printf("\n");
 
-    //This much simpler kernel with no coonditional statements shows that the scheduling between happens at the level of individual print statements.
-    //All the blocks execute statement 1 then all execute statement 2 and then all execute statement 3.
-    //Lets now try to explore what happens if we have multiple warps within a block.
-    //We continue to keep away the complication that comes with conditional statements for now.
 
-    // make_kernel_call(kernel_3, 42,42); //2 warps within 1 block
-    // make_kernel_call(kernel_3, 80,80); //3 warps within 1 block
+    init_eq(N2, 5, a2);
+    H2D(a2, N2, int);
+    time_kernel_call(kernel_less_diverge_problem2, N2, 1024, d_a2);
+    D2H(a2, N2, int);
+    //Print first 10 elements
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", a2[i]);
+    }
+    printf("\n");
 
-    //Here we observe that there is line wise execution of the print statements but the order of execution of the warps at each statement is different
 
-    //make_kernel_call(kernel_3, 100,40); //2 warps in a block and there are 2 blocks 
+    init_eq(N2, 5, a2);
+    H2D(a2, N2, int);
+    time_kernel_call(kernel_no_diverge_problem2, N2, 1024, d_a2);
+    D2H(a2, N2, int);
+    //Print first 10 elements
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", a2[i]);
+    }
+    printf("\n");
 
-    //We observe that the different blocks may interleave thier execution in units of warps. 
-    //Simply put, the sheduling seems to happen at the warp unit level and not the block unit level.
-
-    //We now try to analyse the behaviour of execution when threads diverge.
-    //We design kernel 4 that depicts divergence of threads in a warp
-
-    // make_kernel_call(kernel_4, 32  ,32); //1 block , 1 warp per block
-    // make_kernel_call(kernel_4, 128  ,32); //4 blocks , 1 warp per block
-
-    //We observe that the warps of each block execute the first print statement together, then the second print statement together and then the third print statement together.
-    //threads from differnt warps dont interleave in the execution of a single statement.
-
-    make_kernel_call(kernel_4, 128  ,64); //2 blocks and 2 warps per block
-
-    //the above gives us rather interesting data. 
-    //Key observations include that block 0 and block 1 seem to have similar scheduling - we are yet to test this.
-    //Also that Different warps seem to execute the 3 if statements in a different order>>> Again lets explore this more 
-
-    return 0;
+    /*Results are ase follows:
+    Most divergence:0.036672 ms
+    Less divergence:0.021216 ms
+    No divergence:0.019328 ms
+    */
+    free_dual(a2);
+        return 0;
 }
 
