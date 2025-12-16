@@ -6,6 +6,111 @@
 // we design several kernels and execute them to see how they behave 
 // the conclusions from the observed behaviour will be documented in the report file
 
+__global__ void kernel_diverge_problem1(unsigned int n, int* data){
+    gettid_1D();
+    if (tid < n) {
+        if (tid % 2 == 0){
+            data[tid] = (data[tid] / 2 + 2) * 4;
+        }
+        else{
+            data[tid] = (data[tid] * 2 + 2) * 3;
+        }
+    }
+    
+}
+__global__ void kernel_no_diverge_problem1(unsigned int n, int* data){
+    gettid_1D();
+    unsigned int tid_base = tid / 64;
+    if (tid % 64 > 31){
+        unsigned int tid_p = tid_base * 64 + 2 * (tid % 32) + 1;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] * 2 + 2) * 3;
+        }
+    }
+    else { unsigned int tid_p = tid_base * 64 + 2 * (tid % 32);
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] / 2 + 2) * 4;
+        }
+    }
+    
+    
+}
+__global__ void kernel_diverge_problem2(unsigned int n, int* data){
+    gettid_1D();
+    if (tid < n) {
+        if (tid % 4 == 0){
+            data[tid] = (data[tid] / 2 + 2) * 4;
+        }
+        else if (tid % 4 == 1){
+            data[tid] = (data[tid] * 2 + 2) * 3;
+        }
+        else if (tid % 4 == 2){
+            data[tid] = (data[tid] + 5) * 5;
+        }
+        else {
+            data[tid] = (data[tid] - 3) * 6;
+        }
+    }
+}
+__global__ void kernel_less_diverge_problem2(unsigned int n, int* data){
+    gettid_1D();
+    unsigned int tid_base = tid / 64;
+    if (tid>=n){
+        return;
+    }
+    if (tid % 64 > 47){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 1;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] - 3) * 6;
+        }
+    }
+    else if (tid % 64 > 31){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 2;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] + 5) * 5;
+        }
+    }
+    else if (tid % 64 > 15){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16);
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] * 2 + 2) * 3;
+        }
+    }
+    else {
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 3;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] / 2 + 2) * 4;
+        }
+    }
+}
+__global__ void kernel_no_diverge_problem2(unsigned int n, int* data){
+    gettid_1D();
+    unsigned int tid_base = tid / 128;
+    if (tid % 128 > 95){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 1;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] - 3) * 6;
+        }
+    }
+    else if (tid % 128 > 63){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 2;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] + 5) * 5;
+        }
+    }
+    else if (tid % 128 > 31){
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16);
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] * 2 + 2) * 3;
+        }
+    }
+    else {
+        unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 3;
+        if (tid_p < n) {
+            data[tid_p] = (data[tid_p] / 2 + 2) * 4;
+        }
+    }
+}
 
 
     
