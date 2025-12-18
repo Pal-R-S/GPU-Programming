@@ -86,6 +86,7 @@ __global__ void kernel_less_diverge_problem2(unsigned int n, int* data){
 __global__ void kernel_no_diverge_problem2(unsigned int n, int* data){
     gettid_1D();
     unsigned int tid_base = tid / 128;
+    if (tid<n){
     if (tid % 128 > 95){
         unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 1;
         if (tid_p < n) {
@@ -96,6 +97,7 @@ __global__ void kernel_no_diverge_problem2(unsigned int n, int* data){
         unsigned int tid_p = tid_base * 64 + 3 * (tid % 16) + 2;
         if (tid_p < n) {
             data[tid_p] = (data[tid_p] + 5) * 5;
+            
         }
     }
     else if (tid % 128 > 31){
@@ -109,24 +111,32 @@ __global__ void kernel_no_diverge_problem2(unsigned int n, int* data){
         if (tid_p < n) {
             data[tid_p] = (data[tid_p] / 2 + 2) * 4;
         }
-    }
+    }}
 }
 
 
     
 int main(){
     //We are going to explore the observe the ill effects of Warp Divergence and how much it can affect performance
+    
+    // Check for CUDA errors
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA Error: %s\n", cudaGetErrorString(err));
+    }
 
     //problem1 
     //if a number is odd multiply it by 2 add 2 then multiply by 3 else if its even divide by 2 add 2 then multiply by 4.
     int* a;
-    unsigned int N= 1<<20;
+    unsigned int N= 1<<10;
     a = (int*)malloc(N * sizeof(int));
     init_int_seq(N, a);
     int* d_a;
     cudaMalloc((void**)&d_a, N * sizeof(int));
     H2D(a, N, int);
     time_kernel_call(kernel_diverge_problem1, N, 1024, d_a);
+    err = cudaGetLastError();
+    if (err != cudaSuccess) printf("Kernel 1 Error: %s\n", cudaGetErrorString(err));
     init_int_seq(N, a);
     H2D(a, N,int);
     time_kernel_call(kernel_no_diverge_problem1, N, 1024, d_a);
@@ -150,7 +160,7 @@ int main(){
     cudaMalloc((void**)&d_a2, N2 * sizeof(int));
     H2D(a2, N2, int);
    
-    time_kernel_call(kernel_diverge_problem2, N2, 1024, d_a2);
+    time_kernel_call(kernel_diverge_problem2, N2, 256, d_a2);
     D2H(a2, N2, int);
     //Print first 10 elements
     for (int i = 0; i < 10; i++) {
@@ -161,7 +171,7 @@ int main(){
 
     init_eq(N2, 5, a2);
     H2D(a2, N2, int);
-    time_kernel_call(kernel_less_diverge_problem2, N2, 1024, d_a2);
+    time_kernel_call(kernel_less_diverge_problem2, N2, 256, d_a2);
     D2H(a2, N2, int);
     //Print first 10 elements
     for (int i = 0; i < 10; i++) {
@@ -172,7 +182,7 @@ int main(){
 
     init_eq(N2, 5, a2);
     H2D(a2, N2, int);
-    time_kernel_call(kernel_no_diverge_problem2, N2, 1024, d_a2);
+    time_kernel_call(kernel_no_diverge_problem2, N2, 256, d_a2);
     D2H(a2, N2, int);
     //Print first 10 elements
     for (int i = 0; i < 10; i++) {
